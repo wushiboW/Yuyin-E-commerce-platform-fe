@@ -1,0 +1,139 @@
+name: Yuyin E-commerce CI/CD
+
+stages:
+  - lint
+  - test
+  - build
+  - deploy
+
+variables:
+  DOCKER_REGISTRY: harbor.yuyin.local
+  K8S_CLUSTER: yuyin-cluster
+
+.python-lint:
+  stage: lint
+  image: python:3.11-slim
+  before_script:
+    - pip install ruff flake8 black mypy
+  script:
+    - ruff check .
+    - black --check .
+    - mypy .
+
+.go-lint:
+  stage: lint
+  image: golang:1.22-alpine
+  before_script:
+    - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+  script:
+    - golangci-lint run
+
+.rust-lint:
+  stage: lint
+  image: rust:1.75
+  before_script:
+    - rustup component add clippy rustfmt
+  script:
+    - cargo clippy -- -D warnings
+    - cargo fmt --check
+
+.java-lint:
+  stage: lint
+  image: maven:3.9-eclipse-temurin-21
+  script:
+    - mvn checkstyle:check
+
+.cs-lint:
+  stage: lint
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  before_script:
+    - dotnet tool install --global dotnet-format
+  script:
+    - dotnet format --verify-no-changes
+
+.cpp-lint:
+  stage: lint
+  image: ubuntu:22.04
+  before_script:
+    - apt-get update && apt-get install -y clang-format cppcheck
+  script:
+    - cppcheck --enable=all --std=c++17 .
+
+.node-lint:
+  stage: lint
+  image: node:20-alpine
+  before_script:
+    - npm install -g eslint prettier typescript
+  script:
+    - npx eslint .
+    - npx prettier --check .
+
+# Build templates
+.python-build:
+  stage: build
+  image: python:3.11-slim
+  script:
+    - pip install uv
+    - uv pip install -r requirements.txt
+    - uv pip install gunicorn
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 day
+
+.go-build:
+  stage: build
+  image: golang:1.22-alpine
+  script:
+    - CGO_ENABLED=0 go build -o service .
+  artifacts:
+    paths:
+      - service
+    expire_in: 1 day
+
+.rust-build:
+  stage: build
+  image: rust:1.75
+  script:
+    - cargo build --release
+  artifacts:
+    paths:
+      - target/release/
+    expire_in: 1 day
+
+# Service-specific jobs
+user-service-build:
+  extends: .python-build
+  services:
+    - docker:24-dind
+  before_script:
+    - python-build:before_script
+    - pip install build
+  script:
+    - python setup.py sdist bdist_wheel
+    - docker build -t $DOCKER_REGISTRY/user-service:$CI_COMMIT_SHORT_SHA .
+  needs:
+    - job: user-service-lint
+      artifacts: false
+
+# Deploy templates
+deploy-k8s:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl apply -f k8s/ -n $K8S_NAMESPACE
+    - kubectl rollout status deployment/$SERVICE_NAME -n $K8S_NAMESPACE
+  environment:
+    name: $ENVIRONMENT
+    url: https://$SERVICE_NAME.$K8S_NAMESPACE.yuyin.local
+  only:
+    - main
+    - develop
+
+# Postman/Newman API tests
+api-tests:
+  stage: test
+  image: postman/newman:5
+  script:
+    - newman run tests/api-collection.json --environment tests/env.json
+  coverage: '/Tests: (\d+) passed, (\d+) failed/'

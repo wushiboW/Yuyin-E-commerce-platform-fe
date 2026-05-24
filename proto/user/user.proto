@@ -1,0 +1,323 @@
+syntax = "proto3";
+
+package yuyin.user;
+
+option go_package = "github.com/yuyin/user-service;user";
+option java_multiple_files = true;
+option java_package = "com.yuyin.user.proto";
+option java_outer_classname = "UserProto";
+
+import "common/common.proto";
+
+service UserService {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Logout(LogoutRequest) returns (yuyin.common.BaseResponse);
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  rpc DeleteUser(yuyin.common.IDRequest) returns (yuyin.common.BaseResponse);
+  rpc GetUserList(yuyin.common.PaginationRequest) returns (GetUserListResponse);
+  rpc ChangePassword(ChangePasswordRequest) returns (yuyin.common.BaseResponse);
+  rpc ResetPassword(ResetPasswordRequest) returns (yuyin.common.BaseResponse);
+  rpc VerifyToken(VerifyTokenRequest) returns (VerifyTokenResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc GetUserProfile(GetUserProfileRequest) returns (GetUserProfileResponse);
+  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UpdateUserProfileResponse);
+  rpc AddAddress(AddAddressRequest) returns (AddAddressResponse);
+  rpc UpdateAddress(UpdateAddressRequest) returns (UpdateAddressResponse);
+  rpc DeleteAddress(DeleteAddressRequest) returns (yuyin.common.BaseResponse);
+  rpc GetAddresses(GetAddressesRequest) returns (GetAddressesResponse);
+  rpc SetDefaultAddress(SetDefaultAddressRequest) returns (yuyin.common.BaseResponse);
+  rpc GetUserByOAuth(GetUserByOAuthRequest) returns (GetUserResponse);
+  rpc OAuthBind(OAuthBindRequest) returns (yuyin.common.BaseResponse);
+  rpc OAuthUnbind(OAuthUnbindRequest) returns (yuyin.common.BaseResponse);
+  rpc GetUserSecurityStatus(GetUserSecurityStatusRequest) returns (GetUserSecurityStatusResponse);
+  rpc UpdateSecuritySettings(UpdateSecuritySettingsRequest) returns (yuyin.common.BaseResponse);
+  rpc ListUserRiskAlerts(ListUserRiskAlertsRequest) returns (ListUserRiskAlertsResponse);
+}
+
+message RegisterRequest {
+  string username = 1;
+  string email = 2;
+  string phone = 3;
+  string password = 4;
+  string invite_code = 5;
+  string source = 6;
+}
+
+message RegisterResponse {
+  string user_id = 1;
+  string token = 2;
+  string refresh_token = 3;
+}
+
+message LoginRequest {
+  oneof login_type {
+    string email = 1;
+    string phone = 2;
+    string username = 3;
+  }
+  string password = 4;
+  string device_id = 5;
+  string ip_address = 6;
+  string source = 7;
+}
+
+message LoginResponse {
+  string user_id = 1;
+  string username = 2;
+  string email = 3;
+  string phone = 4;
+  string role = 5;
+  int32 level = 6;
+  string token = 7;
+  string refresh_token = 8;
+  int64 expires_in = 9;
+}
+
+message LogoutRequest {
+  string user_id = 1;
+  string token = 2;
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUserResponse {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string phone = 4;
+  string avatar = 5;
+  string role = 6;
+  int32 level = 7;
+  string status = 8;
+  string real_name = 9;
+  string id_card = 10;
+  bool real_name_verified = 11;
+  repeated string oauth_providers = 12;
+  string created_at = 13;
+  string updated_at = 14;
+}
+
+message UpdateUserRequest {
+  string user_id = 1;
+  string email = 2;
+  string phone = 3;
+  string avatar = 4;
+  string real_name = 5;
+  string id_card = 6;
+}
+
+message UpdateUserResponse {
+  bool success = 1;
+  GetUserResponse user = 2;
+}
+
+message ChangePasswordRequest {
+  string user_id = 1;
+  string old_password = 2;
+  string new_password = 3;
+}
+
+message ResetPasswordRequest {
+  string email = 1;
+  string code = 2;
+  string new_password = 3;
+}
+
+message VerifyTokenRequest {
+  string token = 1;
+}
+
+message VerifyTokenResponse {
+  bool valid = 1;
+  string user_id = 2;
+  string username = 3;
+  string role = 4;
+  int64 expires_at = 5;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  string token = 1;
+  string refresh_token = 2;
+  int64 expires_in = 3;
+}
+
+message GetUserProfileRequest {
+  string user_id = 1;
+}
+
+message GetUserProfileResponse {
+  string user_id = 1;
+  int32 total_orders = 2;
+  int32 completed_orders = 3;
+  double total_spent = 4;
+  int32 loyalty_points = 5;
+  string member_level = 6;
+  string registered_at = 7;
+  string last_login_at = 8;
+  map<string, string> preferences = 9;
+}
+
+message UpdateUserProfileRequest {
+  string user_id = 1;
+  map<string, string> preferences = 2;
+}
+
+message UpdateUserProfileResponse {
+  bool success = 1;
+}
+
+message Address {
+  string id = 1;
+  string user_id = 2;
+  string name = 3;
+  string phone = 4;
+  string province = 5;
+  string city = 6;
+  string district = 7;
+  string detail = 8;
+  bool is_default = 9;
+  string tag = 10;
+  string postal_code = 11;
+}
+
+message AddAddressRequest {
+  string user_id = 1;
+  string name = 2;
+  string phone = 3;
+  string province = 4;
+  string city = 5;
+  string district = 6;
+  string detail = 7;
+  bool is_default = 8;
+  string tag = 9;
+  string postal_code = 10;
+}
+
+message AddAddressResponse {
+  string address_id = 1;
+}
+
+message UpdateAddressRequest {
+  string address_id = 1;
+  string name = 2;
+  string phone = 3;
+  string province = 4;
+  string city = 5;
+  string district = 6;
+  string detail = 7;
+  bool is_default = 8;
+  string tag = 9;
+  string postal_code = 10;
+}
+
+message DeleteAddressRequest {
+  string address_id = 1;
+  string user_id = 2;
+}
+
+message GetAddressesRequest {
+  string user_id = 1;
+}
+
+message GetAddressesResponse {
+  repeated Address addresses = 1;
+}
+
+message SetDefaultAddressRequest {
+  string address_id = 1;
+  string user_id = 2;
+}
+
+enum OAuthProvider {
+  WECHAT = 0;
+  ALIPAY = 1;
+  GOOGLE = 2;
+  APPLE = 3;
+  FACEBOOK = 4;
+}
+
+message OAuthUserInfo {
+  string openid = 1;
+  string unionid = 2;
+  string nickname = 3;
+  string avatar = 4;
+  string gender = 5;
+  string country = 6;
+  string province = 7;
+  string city = 8;
+}
+
+message GetUserByOAuthRequest {
+  OAuthProvider provider = 1;
+  string openid = 2;
+}
+
+message OAuthBindRequest {
+  string user_id = 1;
+  OAuthProvider provider = 2;
+  string openid = 3;
+  string access_token = 4;
+}
+
+message OAuthUnbindRequest {
+  string user_id = 1;
+  OAuthProvider provider = 2;
+}
+
+message GetUserSecurityStatusRequest {
+  string user_id = 1;
+}
+
+message GetUserSecurityStatusResponse {
+  bool has_password = 1;
+  bool has_phone_verified = 2;
+  bool has_email_verified = 3;
+  bool has_real_name_verified = 4;
+  bool has_payment_password = 5;
+  repeated string bound_oauths = 6;
+  string last_password_change = 7;
+  int32 login_fail_count = 8;
+  string account_status = 9;
+  repeated string recent_login_ips = 10;
+  repeated string recent_login_times = 11;
+}
+
+message UpdateSecuritySettingsRequest {
+  string user_id = 1;
+  bool enable_login_alert = 2;
+  repeated string allowed_login_ips = 3;
+}
+
+message ListUserRiskAlertsRequest {
+  string user_id = 1;
+  yuyin.common.PaginationRequest pagination = 2;
+}
+
+message RiskAlert {
+  string id = 1;
+  string type = 2;
+  string level = 3;
+  string description = 4;
+  string created_at = 5;
+  bool handled = 6;
+  string handled_by = 7;
+  string handled_at = 8;
+}
+
+message ListUserRiskAlertsResponse {
+  repeated RiskAlert alerts = 1;
+  yuyin.common.PaginationResponse pagination = 2;
+}
+
+message GetUserListResponse {
+  repeated GetUserResponse users = 1;
+  yuyin.common.PaginationResponse pagination = 2;
+}

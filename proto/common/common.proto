@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package yuyin.common;
+
+option go_package = "github.com/yuyin/common;common";
+option java_multiple_files = true;
+option java_package = "com.yuyin.common.proto";
+option java_outer_classname = "CommonProto";
+
+message Empty {}
+
+message Timestamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+}
+
+message PaginationRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string sort_by = 3;
+  bool ascending = 4;
+}
+
+message PaginationResponse {
+  int64 total = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  int32 total_pages = 4;
+}
+
+message PageToken {
+  string token = 1;
+  int32 offset = 2;
+}
+
+message BaseResponse {
+  bool success = 1;
+  string message = 2;
+  string code = 3;
+}
+
+message ErrorDetail {
+  string code = 1;
+  string message = 2;
+  string field = 3;
+  repeated string details = 4;
+}
+
+message IDRequest {
+  string id = 1;
+}
+
+message IDListRequest {
+  repeated string ids = 1;
+}
+
+message BoolValue {
+  bool value = 1;
+}
+
+message Int32Value {
+  int32 value = 1;
+}
+
+message Int64Value {
+  int64 value = 1;
+}
+
+message StringValue {
+  string value = 1;
+}
+
+message StringListValue {
+  repeated string values = 1;
+}
+
+message StatusResponse {
+  bool healthy = 1;
+  string version = 2;
+  int64 uptime_seconds = 3;
+  map<string, string> metadata = 4;
+}
