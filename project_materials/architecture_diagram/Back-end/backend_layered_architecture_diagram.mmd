@@ -1,0 +1,125 @@
+graph TD
+    subgraph "接入层"
+        CDN[CDN]
+        Ingress[Ingress NGINX / Istio Gateway]
+    end
+
+    subgraph "应用层 - 核心业务 (Python)"
+        User[用户服务<br/>Django+DRF]
+        Product[商品服务<br/>Django+DRF]
+        Order[订单服务<br/>FastAPI]
+        Cart[购物车服务<br/>FastAPI]
+        Pay[支付服务<br/>FastAPI]
+        Promo[营销服务<br/>Django+DRF]
+    end
+
+    subgraph "应用层 - 高性能服务"
+        Stock[库存服务<br/>Rust+Actix]
+        Risk[风控服务<br/>Rust+Actix]
+        Search[搜索服务<br/>Go+Gin]
+        Rec[推荐服务<br/>Go+Gin]
+        Push[消息推送<br/>Go+Gin+WebSocket]
+        Logistics[物流服务<br/>Java+SpringBoot]
+        SupplyChain[智能供应链<br/>Java+SpringBoot]
+        Image[图像处理<br/>C++ + gRPC]
+        Video[视频转码<br/>C++ + gRPC]
+        Finance[财务对账<br/>C# + ASP.NET Core]
+        Crypto[加解密<br/>C + OpenSSL]
+    end
+
+    subgraph "AI 中台层 (Python)"
+        AIServe[AI推理中台<br/>FastAPI+Ray Serve]
+        AIGC[AIGC内容生成<br/>FastAPI+Celery]
+        UserProfile[用户画像<br/>FastAPI+Feast]
+    end
+
+    subgraph "数据库中间件层"
+        DBProxy[ShardingSphere-Proxy<br/>读写分离 / 分库分表]
+    end
+
+    subgraph "数据层"
+        DB_Master[(PostgreSQL 主库)]
+        DB_Slave1[(PostgreSQL 从库1)]
+        DB_Slave2[(PostgreSQL 从库2)]
+        Cache[(Redis 集群)]
+        MQ[(Kafka / RabbitMQ)]
+        ES[(Elasticsearch)]
+        OSS[(MinIO / S3)]
+        ModelStore[(模型仓库)]
+        HSM[硬件加密机]
+    end
+
+    subgraph "容器编排与可观测性 (Kubernetes)"
+        K8s[Kubernetes 集群]
+        Harbor[Harbor 镜像仓库]
+        Prometheus[Prometheus]
+        Grafana[Grafana]
+        Jaeger[Jaeger]
+        ELK[ELK 日志栈]
+        HPA[HPA 自动伸缩]
+        CM[ConfigMap / Secret]
+    end
+
+    Client([客户端/小程序/Web]) --> CDN
+    Client --> Ingress
+
+    Ingress --> User & Product & Order & Cart & Pay & Promo
+    Ingress --> Rec & Push & Search & Logistics & Image & Video & Finance & Crypto & SupplyChain
+
+    %% 同步调用
+    Order -- gRPC --> Stock
+    Order -- gRPC --> Risk
+    Order -- gRPC --> Pay
+    Cart -- gRPC --> Stock
+    Rec -- gRPC --> AIServe
+    Search -- gRPC --> AIServe
+    Risk -- gRPC --> AIServe
+    Image -- gRPC --> AIServe
+    Product -- gRPC --> AIServe
+    Product -- gRPC --> AIGC
+    Promo -- gRPC --> AIGC
+    UserProfile -- gRPC --> Rec
+    UserProfile -- gRPC --> Promo
+    SupplyChain -- gRPC --> Stock
+
+    %% 异步消息
+    Order -- 发布事件 --> MQ
+    MQ -- 消费 --> Push
+    MQ -- 消费 --> Logistics
+    MQ -- 消费 --> Search
+    MQ -- 消费 --> AIGC
+    MQ -- 消费 --> UserProfile
+    MQ -- 消费 --> Image
+
+    %% 数据存储连接
+    User --> DBProxy
+    Product --> DBProxy
+    Order --> DBProxy
+    Pay --> DBProxy
+    Promo --> DBProxy
+    Logistics --> DBProxy
+    Finance --> DBProxy
+    DBProxy -- 写 --> DB_Master
+    DBProxy -- 读 --> DB_Slave1
+    DBProxy -- 读 --> DB_Slave2
+
+    Cart --> Cache
+    Stock --> Cache
+    Risk --> Cache
+    UserProfile --> Cache
+    Push --> Cache
+
+    Search --> ES
+    Image --> OSS
+    Video --> OSS
+    AIGC --> OSS
+    AIServe --> ModelStore
+    Crypto -- 硬件调用 --> HSM
+
+    %% K8s 部署关系（虚线）
+    User & Product & Order & Cart & Pay & Promo & Stock & Risk & Search & Rec & Push & Logistics & SupplyChain & Image & Video & Finance & Crypto & AIServe & AIGC & UserProfile -.-> K8s
+    Harbor -.-> K8s
+    Prometheus -.-> User & Product & Order & Cart & Pay & Promo & Stock & Risk & Search & Rec & Push
+    Jaeger -.-> Order & Rec & Search & Risk
+    ELK -.-> User & Order & Pay & Risk
+    HPA -.-> Stock & Order & Search & Cart

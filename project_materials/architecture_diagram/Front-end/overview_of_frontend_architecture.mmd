@@ -1,0 +1,33 @@
+graph TD
+    subgraph "展示层"
+        AppShell[微前端容器 / Shell App]
+        direction LR
+        SubApp1[用户中心<br/>React/TS]
+        SubApp2[商品/搜索<br/>React/TS]
+        SubApp3[订单/支付<br/>React/TS]
+        SubApp4[营销/推荐<br/>React/TS]
+        SubApp5[AI内容管理<br/>React/TS]
+        SubApp6[运营后台<br/>Vue/TS 或 React]
+    end
+
+    subgraph "BFF 层 (Node.js)"
+        BFF_Gateway[BFF 网关<br/>NestJS / Express]
+        Aggregation[数据聚合<br/>GraphQL / REST]
+        Auth[认证鉴权<br/>JWT / OAuth2]
+        SSE[流式响应<br/>SSE / WebSocket]
+    end
+
+    subgraph "后端微服务"
+        direction TB
+        PythonCore[Python 核心业务<br/>Django / FastAPI]
+        PerfSvc[高性能服务<br/>Rust / Go / Java / C++]
+        AIPlatform[AI 中台<br/>FastAPI / Ray]
+    end
+
+    AppShell --> SubApp1 & SubApp2 & SubApp3 & SubApp4 & SubApp5 & SubApp6
+    SubApp1 & SubApp2 & SubApp3 & SubApp4 & SubApp5 & SubApp6 -- API/WS --> BFF_Gateway
+    BFF_Gateway --> Aggregation & Auth & SSE
+    Aggregation -- gRPC/REST --> PythonCore
+    Aggregation -- gRPC/REST --> PerfSvc
+    Aggregation -- gRPC/REST --> AIPlatform
+    SSE -- 流式生成 --> AIPlatform
