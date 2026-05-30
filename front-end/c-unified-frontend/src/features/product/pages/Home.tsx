@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Card } from '@components/Card';
 import { useEffect, useRef, useState } from 'react';
+import { useNavbar } from '@contexts/NavbarContext';
 
 /**
  * Swiper Hook - 管理轮播逻辑
@@ -220,6 +221,7 @@ export default function Home() {
   const productsSection = useFadeInOnScroll(0.1);
   const storySection = useFadeInOnScroll(0.1);
   const philosophySection = useFadeInOnScroll(0.15);
+  const { isAtTop } = useNavbar();
 
   useEffect(() => {
     const timer = setTimeout(() => setHeroLoaded(true), 100);
@@ -229,7 +231,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-moon-white dark:bg-ink-black">
       {/* ===== Hero Swiper轮播Banner ===== */}
-      <section ref={heroRef} className="relative w-full h-screen overflow-hidden bg-transparent -mt-14 sm:-mt-16" style={{ minHeight: '600px' }}>
+      <section ref={heroRef} className={`relative w-full h-screen overflow-hidden bg-transparent transition-all duration-300 ${isAtTop ? '-mt-0' : '-mt-14 sm:-mt-16'}`} style={{ minHeight: '600px' }}>
         {/* Swiper Container */}
         <div className="swiper-container absolute inset-0">
           <div className="swiper-wrapper">

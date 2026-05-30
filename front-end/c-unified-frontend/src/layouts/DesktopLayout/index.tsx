@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Avatar } from '@components/Avatar';
 import { useUserStore } from '@stores/userStore';
-import { useState, useEffect, useCallback } from 'react';
+import { useNavbar } from '@contexts/NavbarContext';
 
 interface DesktopLayoutProps {
   children: React.ReactNode;
@@ -14,46 +14,7 @@ interface DesktopLayoutProps {
 export function DesktopLayout({ children }: DesktopLayoutProps) {
   const location = useLocation();
   const { isLoggedIn } = useUserStore();
-  const [isAtTop, setIsAtTop] = useState(true);
-  const [themeMode, setThemeMode] = useState<'light' | 'dark'>(() => {
-    // 初始化：检查localStorage或系统偏好
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('yuyin-theme');
-      if (saved === 'dark' || saved === 'light') return saved;
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return 'light';
-  });
-
-  const isHomePage = location.pathname === '/';
-  const isDark = themeMode === 'dark';
-  const isTransparentMode = isHomePage && isAtTop;
-
-  // 滚动检测 - 阈值改为1px，快速响应
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsAtTop(window.scrollY < 1);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // 同步主题到html和localStorage
-  useEffect(() => {
-    const html = document.documentElement;
-    if (themeMode === 'dark') {
-      html.classList.add('dark');
-    } else {
-      html.classList.remove('dark');
-    }
-    localStorage.setItem('yuyin-theme', themeMode);
-  }, [themeMode]);
-
-  // 切换主题（用户手动切换，不跟随系统）
-  const toggleTheme = useCallback(() => {
-    setThemeMode(currentTheme => currentTheme === 'dark' ? 'light' : 'dark');
-  }, []);
+  const { isAtTop, isTransparent, isDark, toggleTheme } = useNavbar();
 
   const navItems = [
     { path: '/', label: '推荐' },
@@ -65,7 +26,7 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
   const isActive = (path: string) => location.pathname === path;
 
   // 导航栏文字颜色 - 透明模式用白色，非透明模式根据主题适配
-  const navTextColor = isTransparentMode ? 'text-white/60' : 'text-ink-black dark:text-white/60';
+  const navTextColor = isTransparent ? 'text-white/60' : 'text-ink-black dark:text-white/60';
   const navTextHoverColor = 'hover:text-[#C9A962]';
   const navActiveColor = 'text-[#C9A962]';
 
@@ -74,9 +35,9 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
       {/* Header - 全宽导航栏 */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 w-full h-16 transition-all duration-500 ${
-          isTransparentMode
+          isTransparent
             ? 'bg-transparent backdrop-blur-none'
-            : 'bg-moon-white/95 dark:bg-ink-black/95 backdrop-blur-xl'
+            : 'bg-moon-white/30 dark:bg-ink-black/30 backdrop-blur-xl'
         }`}
       >
         {/* 全宽flex布局 */}
@@ -135,7 +96,7 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
             </button>
 
             {/* 分隔线 */}
-            <div className={`w-px h-5 mx-1 ${isTransparentMode ? 'bg-white/20' : 'bg-ink-black/20 dark:bg-white/20'}`} />
+            <div className={`w-px h-5 mx-1 ${isTransparent ? 'bg-white/20' : 'bg-ink-black/20 dark:bg-white/20'}`} />
 
             {/* 登录项或用户头像 */}
             {isLoggedIn ? (
@@ -187,8 +148,10 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
         </div>
       </header>
 
-      {/* Main Content - 固定padding，轮播图用负margin穿透 */}
-      <main className="w-full pt-14 sm:pt-16">
+      {/* Main Content - 根据滚动状态动态调整padding */}
+      <main className={`w-full transition-all duration-300 ${
+        isAtTop ? 'pt-0' : 'pt-14 sm:pt-16'
+      }`}>
         {children}
       </main>
 
