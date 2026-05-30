@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500&family=Noto+Serif+SC:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* PlanE - 高奢极简·东方哲学 */
+  --color-ink-black: #1A1918;
+  --color-moon-white: #FAFAF9;
+  --color-gold-sand: #C9A962;
+  --color-bamboo-green: #4A7C59;
+  --color-paper-brown: #8B7355;
+  --color-warm-gray: #6B6B6B;
+  --color-light-gray: #E8E8E6;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--color-moon-white);
+  color: var(--color-ink-black);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 500;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-light-gray);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-paper-brown);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-black);
+}
+
+/* Selection */
+::selection {
+  background: var(--color-gold-sand);
+  color: var(--color-ink-black);
+}
+
+/* Focus outline */
+:focus-visible {
+  outline: 2px solid var(--color-gold-sand);
+  outline-offset: 2px;
+}
+
+/* Transitions */
+.transition-base {
+  transition: all 250ms ease;
+}
+
+/* Mobile touch optimization */
+@media (max-width: 768px) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
